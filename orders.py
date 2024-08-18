@@ -1,6 +1,6 @@
 import math
 
-from ib_insync import IB, Stock, StopOrder, Order, TagValue
+from ib_insync import IB, Stock, StopOrder, Order, TagValue, MarketOrder, LimitOrder
 
 from util import get_time
 
@@ -147,24 +147,29 @@ class MyOrder:
                             None)
         return float(cash_balance) if cash_balance else None
 
-    def place_order(self):
+    def place_order(self, order_type='MARKET'):
 
-        print(f"[{get_time()}] MIDPRICE: {self.limit_price} | Qty: {self.total_quantity}")
-        order = Order()
-        order.action = self.action
-        order.orderType = "MIDPRICE"
-        order.lmtPrice = self.limit_price
-        order.algoStrategy = "Adaptive"
-        order.algoParams = []
-        order.algoParams.append(TagValue("adaptivePriority", "Urgent"))
-        order.totalQuantity = self.total_quantity
-        # order = LimitOrder(self.action, self.total_quantity, self.limit_price)
+        if order_type == 'MARKET':
+            order = MarketOrder(self.action, self.total_quantity)
+        elif order_type == 'LIMIT':
+            order = LimitOrder(self.action, self.total_quantity, self.limit_price)
+        else:
+            order = Order()
+            order.action = self.action
+            order.orderType = "MIDPRICE"
+            order.lmtPrice = self.limit_price
+            #order.algoStrategy = "Adaptive"
+            #order.algoParams = []
+            #order.algoParams.append(TagValue("adaptivePriority", "Urgent"))
+            order.totalQuantity = self.total_quantity
+
+        print(f"[{get_time()}] {order.orderType.upper()}: {self.limit_price} | Qty: {self.total_quantity}")
         order.orderId = self.client.client.getReqId()
         order.transmit = True
         parent_trade = self.client.placeOrder(self.contract, order)
-        print(f"[{get_time()}] Midprice order sent: {order.orderId}")
+        print(f"[{get_time()}] {order.orderType.upper()} sent: {order.orderId}")
         self.client.sleep(1)
-        print(f"[{get_time()}] Midprice Order status: {parent_trade.orderStatus.status}")
+        print(f"[{get_time()}] {order.orderType.upper()} status: {parent_trade.orderStatus.status}")
 
         # order.lmtPrice = priceCap  # optional
 

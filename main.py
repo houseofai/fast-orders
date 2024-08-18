@@ -132,6 +132,36 @@ def create_gui():
     dollar_risk_var = tk.DoubleVar(value=50)  # Default value for dollar risk
     dollar_threshold_var = tk.DoubleVar(value=10000)  # Default value for dollar threshold
 
+    order_type_var = tk.StringVar(value="Market")  # Default to Market order
+
+    def highlight_order_button(order_type):
+        market_button.config(bg="SystemButtonFace", fg="black")
+        limit_button.config(bg="SystemButtonFace", fg="black")
+        midprice_button.config(bg="SystemButtonFace", fg="black")
+        if order_type == "Market":
+            market_button.config(bg="blue", fg="white")
+        elif order_type == "Limit":
+            limit_button.config(bg="blue", fg="white")
+        else:
+            midprice_button.config(bg="blue", fg="white")
+
+    def set_order_type(order_type):
+        order_type_var.set(order_type)
+        highlight_order_button(order_type)
+
+    market_button = tk.Button(main_frame, text="Market", command=lambda: set_order_type("Market"), font=label_font,
+                              width=10)
+    limit_button = tk.Button(main_frame, text="Limit", command=lambda: set_order_type("Limit"), font=label_font,
+                             width=10)
+    midprice_button = tk.Button(main_frame, text="Midprice", command=lambda: set_order_type("Midprice"),
+                                font=label_font, width=10)
+
+    market_button.grid(row=7, column=0, sticky='w', pady=5)
+    limit_button.grid(row=7, column=1, sticky='w', pady=5)
+    midprice_button.grid(row=7, column=2, sticky='w', pady=5)
+
+    highlight_order_button("Market")  # Set initial highlight to Market
+
     def highlight_button(action):
         if action == "BUY":
             buy_button.config(bg="green", fg="white")
@@ -184,6 +214,14 @@ def create_gui():
 
     symbol_entry.grid(row=3, column=1, sticky='w', pady=5)
     symbol_entry.focus()
+
+    def to_uppercase(event):
+        current_text = symbol_entry.get().upper()
+        symbol_entry.delete(0, tk.END)
+        symbol_entry.insert(0, current_text)
+
+    symbol_entry.bind("<KeyRelease>", to_uppercase)
+
     stop_loss_entry.grid(row=4, column=1, sticky='w', pady=5)
     dollar_risk_entry.grid(row=5, column=1, sticky='w', pady=5)
     dollar_threshold_entry.grid(row=6, column=1, sticky='w', pady=5)
@@ -197,6 +235,7 @@ def create_gui():
         stop_loss = stop_loss_entry.get()
         dollar_risk = dollar_risk_var.get()
         dollar_threshold = dollar_threshold_var.get()
+        order_type = order_type_var.get()
 
         myOrder = MyOrder(connection, dollar_risk, dollar_threshold)
 
@@ -213,7 +252,7 @@ def create_gui():
             return
         else:
             print(f"[{get_time()}] Placing order...")
-            myOrder.place_order()
+            myOrder.place_order(order_type)
             print(f"[{get_time()}] Order placed successfully.")
 
     def on_reset():
@@ -232,8 +271,8 @@ def create_gui():
     submit_button = tk.Button(main_frame, text="Submit", command=on_submit, font=label_font, width=10)
     reset_button = tk.Button(main_frame, text="Reset", command=on_reset, font=label_font, width=10)
 
-    submit_button.grid(row=7, column=0, pady=20)
-    reset_button.grid(row=7, column=1, pady=20)
+    submit_button.grid(row=8, column=0, pady=20)
+    reset_button.grid(row=8, column=1, pady=20)
 
     root.bind('<Return>', on_submit)
     root.protocol("WM_DELETE_WINDOW", on_exit)
