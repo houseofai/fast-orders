@@ -15,7 +15,7 @@ def _validate_stop_loss(stop_loss, limit_price, action, stoploss_percent=5):
             stop_loss = limit_price * (1 - stoploss_percent / 100)
         else:
             stop_loss = limit_price * (1 + stoploss_percent / 100)
-
+    stop_loss = round(float(stop_loss), 2)
     if stop_loss >= limit_price and action == 'BUY':
         raise ValueError("Input Error",
                          f"Stop Loss ({stop_loss}) must be less than the limit price: {limit_price}.")
@@ -148,6 +148,7 @@ class MyOrder:
         return float(cash_balance) if cash_balance else None
 
     def place_order(self, order_type='MARKET'):
+        order_type = order_type.upper()
 
         if order_type == 'MARKET':
             order = MarketOrder(self.action, self.total_quantity)
@@ -165,7 +166,7 @@ class MyOrder:
 
         print(f"[{get_time()}] {order.orderType.upper()}: {self.limit_price} | Qty: {self.total_quantity}")
         order.orderId = self.client.client.getReqId()
-        order.transmit = True
+        order.transmit = False
         parent_trade = self.client.placeOrder(self.contract, order)
         print(f"[{get_time()}] {order.orderType.upper()} sent: {order.orderId}")
         self.client.sleep(1)
